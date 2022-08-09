@@ -3,7 +3,7 @@ import database from "../config/database";
 
 const { DataTypes }: any = Sequelize;
 
-const Player =  database.define('tbl_player', {
+const Player =  database.define('tbl_players', {
     
     cd_player: {
         type: DataTypes.STRING(300),
@@ -25,6 +25,10 @@ const Player =  database.define('tbl_player', {
     total_victory: {
         type: DataTypes.INTEGER,
     },
+}, {
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false 
 })
 
 export default Player;
