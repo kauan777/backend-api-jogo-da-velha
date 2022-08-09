@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express'
-import { loginRouter, signUpRouter } from './routes/player'
-
+import routerPlayer from './routes/player'
+import 'dotenv/config'
 const app = express()
 
 app.get('./', (req: Request, res: Response) => {
@@ -9,8 +9,7 @@ app.get('./', (req: Request, res: Response) => {
 
 app.use(express.json())
 
-app.use("/login", loginRouter);
-app.use("/signup", signUpRouter);
+app.use("/", routerPlayer);
 
 app.listen(3001, () => {
     console.log("Funcionando!!")
