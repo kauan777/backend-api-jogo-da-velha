@@ -1,10 +1,9 @@
 import express from 'express'
 import { loginPlayer, signUpPlayer } from '../controllers/Player';
 
+const router = express.Router();
 
-export const loginRouter = express.Router();
+router.post("/login", loginPlayer);
+router.get("/signup", signUpPlayer);
 
-export const signUpRouter = express.Router();
-
-loginRouter.post("/", loginPlayer);
-signUpRouter.post("/", signUpPlayer);
+export default router
