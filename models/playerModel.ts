@@ -26,3 +26,5 @@ const Player =  database.define('tbl_player', {
         type: DataTypes.INTEGER,
     },
 })
+
+export default Player;
