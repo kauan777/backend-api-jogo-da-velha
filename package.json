@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "ts-node-dev index.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
