@@ -19,7 +19,7 @@ const Player =  database.define('tbl_players', {
         allowNull: false
     },
     password_player: {
-        type: DataTypes.STRING(30),
+        type: DataTypes.STRING(300),
         allowNull: false
     },
     total_victory: {
