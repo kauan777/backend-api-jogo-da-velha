@@ -1,4 +1,11 @@
-GET  http://localhost:3001/signup
+POST  http://localhost:3001/signup
+Content-Type: application/json
+
+{
+    "nickname": "kakazika",
+    "email": "kaka@gmail.com",
+    "password": "12345"
+}
 
 ###
 
