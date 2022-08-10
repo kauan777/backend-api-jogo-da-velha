@@ -11,30 +11,37 @@ interface PlayerProps {
 
 export const loginPlayer = async (req: Request, res: Response) => {
 
-  //const password = bcrypt.
+  const { email, password } = req.body;
 
   try {
-    const player = await Player.findAll({
+    const player: any = await Player.findAll({
       where: {
-        email_player: req.body.email,
-        password_player: req.body.password,
+        email_player: email,
       },
-    });
+      
+    })
     if (res.status(200) && player[0] == null) {
-      res.json({ message: "Usuario não encontrado" });
+      res.json({ message: "Usuario não encontrado", error: true });
       return;
     }
-    const { nickname_player, cd_player, total_victory }: any = player[0];
+    const passwordMath = await bcrypt.compare(password, player[0].password_player)
 
-    res.json({
-      id: cd_player,
-      nickname: nickname_player,
-      total_victory: total_victory,
-    });
-  } catch (err: any) {
-    res.json({ message: err.message });
-    res.status(400)
+    if(passwordMath){
+      const { nickname_player, cd_player, total_victory }: any = player[0];
+      res.json({
+        id: cd_player,
+          nickname: nickname_player,
+          total_victory: total_victory,
+        });
+    }else{
+      res.json({ message: "Senha inválida", error: true });
+      return;
+    }
+
+  }catch(err){
+    res.json(err);
   }
+
 };
 
 const ifEmailExists = async (email: string) => {
@@ -63,7 +70,7 @@ export const signUpPlayer = async (req: Request, res: Response) => {
   const IF_ALREADY_EXISTS_EMAIL = await ifEmailExists(email);
 
   if(IF_ALREADY_EXISTS_EMAIL){
-    res.json({ message: "Email já cadastrado" });
+    res.json({ message: "Email já cadastrado", error: true });
     res.status(400)
     return;
   }
@@ -76,7 +83,7 @@ export const signUpPlayer = async (req: Request, res: Response) => {
       password_player: hashedPassword,
       total_victory: 0
     });
-    res.json({ message: `Cadastro feito com sucesso`});
+    res.json({ message: `Cadastro feito com sucesso`, error: false});
 
   } catch (err: any) {
     res.json({ message: `err: ${err.message}`});
