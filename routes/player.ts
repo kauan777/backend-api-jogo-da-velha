@@ -4,6 +4,6 @@ import { loginPlayer, signUpPlayer } from '../controllers/Player';
 const router = express.Router();
 
 router.post("/login", loginPlayer);
-router.get("/signup", signUpPlayer);
+router.post("/signup", signUpPlayer);
 
 export default router
