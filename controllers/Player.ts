@@ -69,8 +69,6 @@ const ifEmailExists = async (email: string) => {
 
 export const signUpPlayer = async (req: Request, res: Response) => {
   const { nickname, email, password }: PlayerProps = req.body;
-  const playerId = uuidv4();
-  const hashedPassword = await bcrypt.hash(password, 10);
 
   const IF_ALREADY_EXISTS_EMAIL = await ifEmailExists(email);
 
@@ -79,6 +77,9 @@ export const signUpPlayer = async (req: Request, res: Response) => {
     res.json({ message: "Email já cadastrado", error: true });
     return;
   }
+
+  const playerId = uuidv4();
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
     await Player.create({
