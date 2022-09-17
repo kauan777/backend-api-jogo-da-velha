@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Player from "../models/playerModel";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 interface PlayerProps {
   nickname: string;
@@ -10,7 +11,6 @@ interface PlayerProps {
 }
 
 export const loginPlayer = async (req: Request, res: Response) => {
-
   const { email, password } = req.body;
 
   try {
@@ -18,30 +18,36 @@ export const loginPlayer = async (req: Request, res: Response) => {
       where: {
         email_player: email,
       },
-      
-    })
+    });
     if (res.status(200) && player[0] == null) {
       res.json({ message: "Usuario não encontrado", error: true });
       return;
     }
-    const passwordMath = await bcrypt.compare(password, player[0].password_player)
+    const passwordMath = await bcrypt.compare(
+      password,
+      player[0].password_player
+    );
 
-    if(passwordMath){
+    if (passwordMath) {
       const { nickname_player, cd_player, total_victory }: any = player[0];
+      const token = jwt.sign({ cd_player }, `${process.env.JWT_KEY}`, {
+        expiresIn: "1h",
+      });
+
       res.json({
+        token: token,
         id: cd_player,
-          nickname: nickname_player,
-          total_victory: total_victory,
-        });
-    }else{
+        nickname: nickname_player,
+        total_victory: total_victory,
+      });
+    } else {
+      res.statusCode = 401;
       res.json({ message: "Senha inválida", error: true });
       return;
     }
-
-  }catch(err){
+  } catch (err) {
     res.json(err);
   }
-
 };
 
 const ifEmailExists = async (email: string) => {
@@ -65,13 +71,12 @@ export const signUpPlayer = async (req: Request, res: Response) => {
   const { nickname, email, password }: PlayerProps = req.body;
   const playerId = uuidv4();
   const hashedPassword = await bcrypt.hash(password, 10);
-  //const token = serverClient.createToken(playerId)
 
   const IF_ALREADY_EXISTS_EMAIL = await ifEmailExists(email);
 
-  if(IF_ALREADY_EXISTS_EMAIL){
+  if (IF_ALREADY_EXISTS_EMAIL) {
+    res.statusCode = 400;
     res.json({ message: "Email já cadastrado", error: true });
-    res.status(400)
     return;
   }
 
@@ -81,11 +86,10 @@ export const signUpPlayer = async (req: Request, res: Response) => {
       nickname_player: nickname,
       email_player: email,
       password_player: hashedPassword,
-      total_victory: 0
+      total_victory: 0,
     });
-    res.json({ message: `Cadastro feito com sucesso`, error: false});
-
+    res.json({ message: `Cadastro feito com sucesso`, error: false });
   } catch (err: any) {
-    res.json({ message: `err: ${err.message}`});
+    res.json({ message: `err: ${err.message}` });
   }
 };
