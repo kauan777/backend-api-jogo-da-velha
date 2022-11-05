@@ -4,32 +4,42 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-interface PlayerProps {
+type PlayerProps = {
   nickname: string;
   email: string;
   password: string;
-}
+};
+
+type PlayerPropsDatabase = {
+  cd_player: number;
+  nickname_player: string;
+  total_victory: number;
+};
 
 export const loginPlayer = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
+  const { emailAlreadyExists } = await ifEmailExists(email);
+
   try {
+    if (!emailAlreadyExists) {
+      res.json({ message: "Usuario não encontrado", error: true });
+      return;
+    }
+
     const player: any = await Player.findAll({
       where: {
         email_player: email,
       },
     });
-    if (res.status(200) && player[0] == null) {
-      res.json({ message: "Usuario não encontrado", error: true });
-      return;
-    }
-    const passwordMath = await bcrypt.compare(
+    const passwordMath: boolean = await bcrypt.compare(
       password,
       player[0].password_player
     );
 
     if (passwordMath) {
-      const { nickname_player, cd_player, total_victory }: any = player[0];
+      const { nickname_player, cd_player, total_victory }: PlayerPropsDatabase =
+        player[0];
       const token = jwt.sign({ cd_player }, `${process.env.JWT_KEY}`, {
         expiresIn: "1h",
       });
@@ -58,9 +68,13 @@ const ifEmailExists = async (email: string) => {
       },
     });
     if (player[0] == null) {
-      return false;
+      return {
+        emailAlreadyExists: false,
+      };
     } else {
-      return true;
+      return {
+        emailAlreadyExists: true,
+      };
     }
   } catch (err: any) {
     throw new Error("Erro");
@@ -70,9 +84,9 @@ const ifEmailExists = async (email: string) => {
 export const signUpPlayer = async (req: Request, res: Response) => {
   const { nickname, email, password }: PlayerProps = req.body;
 
-  const IF_ALREADY_EXISTS_EMAIL = await ifEmailExists(email);
+  const { emailAlreadyExists } = await ifEmailExists(email);
 
-  if (IF_ALREADY_EXISTS_EMAIL) {
+  if (emailAlreadyExists) {
     res.statusCode = 400;
     res.json({ message: "Email já cadastrado", error: true });
     return;
