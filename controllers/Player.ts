@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 
 type PlayerProps = {
   nickname: string;
-  email: string;
   password: string;
 };
 
@@ -16,20 +15,41 @@ type PlayerPropsDatabase = {
   total_victory: number;
 };
 
-export const loginPlayer = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+const ifPlayerExists = async (nickname: string) => {
+  try {
+    const player = await Player.findAll({
+      where: {
+        nickname_player: nickname,
+      },
+    });
+    if (player[0] == null) {
+      return {
+        playerAlreadyExists: false,
+      };
+    } else {
+      return {
+        playerAlreadyExists: true,
+      };
+    }
+  } catch (err: any) {
+    throw new Error("Erro");
+  }
+};
 
-  const { emailAlreadyExists } = await ifEmailExists(email);
+export const loginPlayer = async (req: Request, res: Response) => {
+  const { nickname, password } = req.body;
+
+  const { playerAlreadyExists } = await ifPlayerExists(nickname);
 
   try {
-    if (!emailAlreadyExists) {
+    if (!playerAlreadyExists) {
       res.json({ message: "Usuario não encontrado", error: true });
       return;
     }
 
     const player: any = await Player.findAll({
       where: {
-        email_player: email,
+        nickname_player: nickname,
       },
     });
     const passwordMath: boolean = await bcrypt.compare(
@@ -60,35 +80,13 @@ export const loginPlayer = async (req: Request, res: Response) => {
   }
 };
 
-const ifEmailExists = async (email: string) => {
-  try {
-    const player = await Player.findAll({
-      where: {
-        email_player: email,
-      },
-    });
-    if (player[0] == null) {
-      return {
-        emailAlreadyExists: false,
-      };
-    } else {
-      return {
-        emailAlreadyExists: true,
-      };
-    }
-  } catch (err: any) {
-    throw new Error("Erro");
-  }
-};
-
 export const signUpPlayer = async (req: Request, res: Response) => {
-  const { nickname, email, password }: PlayerProps = req.body;
+  const { nickname, password }: PlayerProps = req.body;
 
-  const { emailAlreadyExists } = await ifEmailExists(email);
+  const { playerAlreadyExists } = await ifPlayerExists(nickname);
 
-  if (emailAlreadyExists) {
-    res.statusCode = 400;
-    res.json({ message: "Email já cadastrado", error: true });
+  if (playerAlreadyExists) {
+    res.status(409).json("Usuário já existe");
     return;
   }
 
@@ -99,12 +97,11 @@ export const signUpPlayer = async (req: Request, res: Response) => {
     await Player.create({
       cd_player: playerId,
       nickname_player: nickname,
-      email_player: email,
       password_player: hashedPassword,
       total_victory: 0,
     });
-    res.json({ message: `Cadastro feito com sucesso`, error: false });
+    res.status(201).json("Cadastro feito com sucesso");
   } catch (err: any) {
-    res.json({ message: `err: ${err.message}` });
+    res.status(500).json(`${err}`);
   }
 };

@@ -2,8 +2,7 @@ POST  http://localhost:3001/signup
 Content-Type: application/json
 
 {
-    "nickname": "kakazika",
-    "email": "kaka@gmail.com",
+    "nickname": "kaka123",
     "password": "12345"
 }
 
@@ -13,7 +12,7 @@ POST http://localhost:3001/login
 Content-Type: application/json
 
 {
-    "email": "kaka@gmail.com",
+    "nickname": "kaka123",
     "password": "12345"
 }
 
