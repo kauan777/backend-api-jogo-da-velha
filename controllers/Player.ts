@@ -37,13 +37,17 @@ const ifPlayerExists = async (nickname: string) => {
 };
 
 export const loginPlayer = async (req: Request, res: Response) => {
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
+
   const { nickname, password } = req.body;
 
   const { playerAlreadyExists } = await ifPlayerExists(nickname);
 
   try {
     if (!playerAlreadyExists) {
-      res.json({ message: "Usuario não encontrado", error: true });
+      res.json({ message: "Usuario ou senha estão incorretos", error: true });
       return;
     }
 
@@ -71,8 +75,7 @@ export const loginPlayer = async (req: Request, res: Response) => {
         total_victory: total_victory,
       });
     } else {
-      res.statusCode = 401;
-      res.json({ message: "Senha inválida", error: true });
+      res.json({ message: "Usuario ou senha estão incorretos", error: true });
       return;
     }
   } catch (err) {
@@ -81,12 +84,16 @@ export const loginPlayer = async (req: Request, res: Response) => {
 };
 
 export const signUpPlayer = async (req: Request, res: Response) => {
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
+
   const { nickname, password }: PlayerProps = req.body;
 
   const { playerAlreadyExists } = await ifPlayerExists(nickname);
 
   if (playerAlreadyExists) {
-    res.status(409).json("Usuário já existe");
+    res.json({ message: "Usuário já existe", error: true });
     return;
   }
 
@@ -100,8 +107,37 @@ export const signUpPlayer = async (req: Request, res: Response) => {
       password_player: hashedPassword,
       total_victory: 0,
     });
-    res.status(201).json("Cadastro feito com sucesso");
+    res.json({ message: "Cadastro feito com sucesso", error: false });
   } catch (err: any) {
     res.status(500).json(`${err}`);
+  }
+};
+
+export const getPlayer = async (req: Request, res: Response) => {
+  if (req.method !== "GET") {
+    return res.status(405).end();
+  }
+
+  const token: any = req.headers.authorization;
+
+  const { cd_player: id }: any = jwt.decode(token);
+
+  try {
+    const player: any = await Player.findAll({
+      where: {
+        cd_player: id,
+      },
+    });
+
+    const { cd_player, nickname_player, total_victory }: PlayerPropsDatabase =
+      player[0];
+
+    res.json({
+      id: cd_player,
+      nickname: nickname_player,
+      totalVictory: total_victory,
+    });
+  } catch (err) {
+    res.json(err);
   }
 };

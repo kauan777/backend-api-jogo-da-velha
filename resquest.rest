@@ -15,4 +15,3 @@ Content-Type: application/json
     "nickname": "kaka123",
     "password": "12345"
 }
-
